@@ -1,0 +1,42 @@
+ORG 00H
+MOV P1, #11111111B   ; Set P1 as input for ADC0804
+MOV P0, #11111111B   ; Initially turn ON all LEDs (inverted logic)
+
+MAIN:
+    SETB P3.6        ; Start ADC conversion
+    CLR P3.5
+    SETB P3.5
+
+WAIT:
+    JB P3.4, WAIT    ; Wait for ADC conversion to complete
+    CLR P3.7
+    CLR P3.6
+    ACALL DELAY      ; Short delay
+    MOV A, P1        ; Read ADC value from P1
+
+    CJNE A, #100, CHECK ; Compare ADC value with 100
+    SJMP LED_ON        ; If A = 100, jump to LED_ON (inverted logic)
+
+CHECK:
+    JC LED_ON        ; If ADC value < 100, turn ON LEDs (inverted logic)
+
+LED_OFF:
+    MOV P0, #00000000B ; Turn OFF all LEDs (inverted logic)
+    SJMP MAIN
+
+LED_ON:
+    MOV P0, #11111111B ; Turn ON all LEDs (inverted logic)
+    SJMP MAIN
+
+DELAY:
+    MOV R3, 250D
+    MOV R2, 250D
+
+S2:
+    DJNZ R2, S2
+
+S1:
+    DJNZ R3, S1
+
+    RET
+    END
